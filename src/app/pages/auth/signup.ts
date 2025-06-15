@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
 import { CheckboxModule } from 'primeng/checkbox';
@@ -14,8 +14,9 @@ interface AuthError {
   message: string;
   code?: string;
 }
+
 @Component({
-  selector: 'app-login',
+  selector: 'app-signup',
   standalone: true,
   imports: [CommonModule, ButtonModule, CheckboxModule, InputTextModule, PasswordModule, ReactiveFormsModule, RouterModule, RippleModule, AppFloatingConfigurator],
   template: `
@@ -45,24 +46,20 @@ interface AuthError {
                 </g>
               </svg>
               <div class="text-surface-900 dark:text-surface-0 text-3xl font-medium mb-4">Welcome to Diet Assist!</div>
-              <span class="text-muted-color font-medium">Sign in to continue</span>
+              <span class="text-muted-color font-medium">Create your account to continue</span>
             </div>
 
-            <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
+            <form [formGroup]="signupForm" (ngSubmit)="onSubmit()">
+              <label for="name1" class="block text-surface-900 dark:text-surface-0 text-xl font-medium mb-2">Name</label>
+              <input pInputText id="name1" type="text" placeholder="Full name" class="w-full md:w-[30rem] mb-8" formControlName="name" />
+
               <label for="email1" class="block text-surface-900 dark:text-surface-0 text-xl font-medium mb-2">Email</label>
-              <input pInputText id="email1" type="email" placeholder="Email address" class="w-full md:w-[30rem] mb-8" formControlName="email" />
+              <input pInputText id="email1" type="text" placeholder="Email address" class="w-full md:w-[30rem] mb-8" formControlName="email" />
 
               <label for="password1" class="block text-surface-900 dark:text-surface-0 font-medium text-xl mb-2">Password</label>
-              <p-password id="password1" placeholder="Password" [toggleMask]="true" styleClass="mb-4" [fluid]="true" [feedback]="false" formControlName="password"></p-password>
+              <p-password id="password1" formControlName="password" placeholder="Password" [toggleMask]="true" styleClass="mb-4" [fluid]="true" [feedback]="false"></p-password>
 
-              <div class="flex items-center justify-between mt-2 mb-8 gap-8">
-                <div class="flex items-center">
-                  <p-checkbox id="rememberme1" binary class="mr-2" formControlName="rememberMe"></p-checkbox>
-                  <label for="rememberme1">Remember me</label>
-                </div>
-                <span class="font-medium no-underline ml-2 text-right cursor-pointer text-primary">Forgot password?</span>
-              </div>
-              <p-button [icon]="loading ? 'pi pi-spin pi-spinner' : 'pi pi-sign-in'" [label]="loading ? 'Signing In...' : 'Sign In'" styleClass="w-full" type="submit" [disabled]="loginForm.invalid || loading"> </p-button>
+              <p-button [icon]="loading ? 'pi pi-spin pi-spinner' : 'pi pi-user-plus'" [label]="loading ? 'Signing Up...' : 'Sign Up'" styleClass="w-full" type="submit" [disabled]="signupForm.invalid || loading"> </p-button>
             </form>
             <div *ngIf="error" class="text-red-500 text-sm mt-2">
               {{ error }}
@@ -73,8 +70,8 @@ interface AuthError {
     </div>
   `
 })
-export class Login {
-  loginForm!: FormGroup;
+export class SignUp {
+  signupForm!: FormGroup;
 
   loading = false;
 
@@ -82,27 +79,27 @@ export class Login {
 
   constructor(
     private auth: AuthService,
-    private fb: FormBuilder,
+    private fb: FormBuilder
   ) {}
 
   ngOnInit() {
-    this.loginForm = this.fb.group({
+    this.signupForm = this.fb.group({
+      name: ['', [Validators.required, Validators.minLength(3), Validators.maxLength(50)]],
       email: ['', [Validators.required, Validators.email]],
-      password: ['', [Validators.required, Validators.minLength(6)]],
-      rememberMe: [false]
+      password: ['', [Validators.required, Validators.minLength(6)]]
     });
   }
 
   async onSubmit() {
-    if (this.loginForm.valid) {
+    if (this.signupForm.valid) {
       this.loading = true;
       this.error = null;
 
-      const { email, password } = this.loginForm.value;
-      const { data, error } = await this.auth.signIn(email, password);
+      const { name, email, password } = this.signupForm.value;
+      const { data, error } = await this.auth.signUp(name, email, password);
 
       if (error) {
-        this.error = (error as AuthError)?.message || 'An error occurred during sign in';
+        this.error = (error as AuthError)?.message || 'An error occurred during sign up';
       }
 
       this.loading = false;

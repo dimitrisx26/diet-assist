@@ -16,6 +16,7 @@ export class AuthService {
       const { data, error } = await this.supabase.signUp(name, email, password);
 
       if (error) throw error;
+      this.router.navigate(['/']);
       return { data, error: null };
     } catch (error) {
       return { data: null, error };
@@ -27,6 +28,7 @@ export class AuthService {
       const { data, error } = await this.supabase.signIn(email, password);
 
       if (error) throw error;
+      this.router.navigate(['/']);
       return { data, error: null };
     } catch (error) {
       return { data: null, error };
@@ -37,7 +39,7 @@ export class AuthService {
     try {
       const { error } = await this.supabase.signOut();
       if (error) throw error;
-      this.router.navigate(['/login']);
+      this.router.navigate(['/auth/login']);
       return { error: null };
     } catch (error) {
       return { error };

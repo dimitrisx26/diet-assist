@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { MenuItem } from 'primeng/api';
 import { AppMenuitem } from './app.menuitem';
+import { AuthService } from '../../pages/service/auth.service';
 
 @Component({
     selector: 'app-menu',
@@ -17,6 +18,8 @@ import { AppMenuitem } from './app.menuitem';
 })
 export class AppMenu {
     model: MenuItem[] = [];
+
+    constructor(private auth: AuthService) {}
 
     ngOnInit() {
         this.model = [
@@ -62,6 +65,11 @@ export class AppMenu {
                                 label: 'Login',
                                 icon: 'pi pi-fw pi-sign-in',
                                 routerLink: ['/auth/login']
+                            },
+                            {
+                                label: 'Signup',
+                                icon: 'pi pi-fw pi-user-plus',
+                                routerLink: ['/auth/signup']
                             },
                             {
                                 label: 'Error',
