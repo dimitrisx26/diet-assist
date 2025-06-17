@@ -1,6 +1,6 @@
 import { computed, Injectable, signal } from '@angular/core';
 import { createClient, Session, SupabaseClient, User } from '@supabase/supabase-js';
-import { environment } from '../environments/environment.dev';
+import { environment } from '../../environments/environment.dev';
 
 @Injectable({
   providedIn: 'root'
@@ -15,6 +15,10 @@ export class SupabaseService {
   public readonly session = this._session.asReadonly();
 
   public readonly isAuth = computed(() => !!this._session());
+
+  get client() {
+    return this.supabase;
+  }
 
   constructor() {
     this.supabase = createClient(environment.supabaseUrl, environment.supabaseKey);
