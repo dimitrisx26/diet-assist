@@ -1,9 +1,9 @@
 import { Routes } from '@angular/router';
 import { AppLayout } from './app/layout/component/app.layout';
 import { Dashboard } from './app/pages/dashboard/dashboard';
-import { Documentation } from './app/pages/documentation/documentation';
 import { Landing } from './app/pages/landing/landing';
 import { Notfound } from './app/pages/notfound/notfound';
+import { devOnlyGuard } from './app/pages/guard/devonlyguard.guard';
 
 export const appRoutes: Routes = [
     {
@@ -11,9 +11,20 @@ export const appRoutes: Routes = [
         component: AppLayout,
         children: [
             { path: '', component: Dashboard },
-            { path: 'uikit', loadChildren: () => import('./app/pages/uikit/uikit.routes') },
-            { path: 'documentation', component: Documentation },
-            { path: 'pages', loadChildren: () => import('./app/pages/pages.routes') }
+            { 
+                path: 'demo', 
+                loadChildren: () => import('./app/pages/uikit/uikit.routes'),
+                canActivate: [devOnlyGuard]
+            },
+            { path: 'pages', loadChildren: () => import('./app/pages/pages.routes') },
+            { path: 'users', component: Dashboard},
+            { path: 'messages', component: Dashboard},
+            { path: 'meal-planner', component: Dashboard },
+            { path: 'nutrition-tracker', component: Dashboard },
+            { path: 'recipes', component: Dashboard },
+            { path: 'food-database', component: Dashboard },
+            { path: 'profile', component: Dashboard },
+            { path: 'preferences', component: Dashboard }
         ]
     },
     { path: 'landing', component: Landing },

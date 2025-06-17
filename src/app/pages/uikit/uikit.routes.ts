@@ -14,22 +14,29 @@ import { TableDemo } from './tabledemo';
 import { OverlayDemo } from './overlaydemo';
 import { TreeDemo } from './treedemo';
 import { MenuDemo } from './menudemo';
+import { DemoLayoutComponent } from '../../layout/component/app.demolayout';
 
 export default [
-    { path: 'button', data: { breadcrumb: 'Button' }, component: ButtonDemo },
-    { path: 'charts', data: { breadcrumb: 'Charts' }, component: ChartDemo },
-    { path: 'file', data: { breadcrumb: 'File' }, component: FileDemo },
-    { path: 'formlayout', data: { breadcrumb: 'Form Layout' }, component: FormLayoutDemo },
-    { path: 'input', data: { breadcrumb: 'Input' }, component: InputDemo },
-    { path: 'list', data: { breadcrumb: 'List' }, component: ListDemo },
-    { path: 'media', data: { breadcrumb: 'Media' }, component: MediaDemo },
-    { path: 'message', data: { breadcrumb: 'Message' }, component: MessagesDemo },
-    { path: 'misc', data: { breadcrumb: 'Misc' }, component: MiscDemo },
-    { path: 'panel', data: { breadcrumb: 'Panel' }, component: PanelsDemo },
-    { path: 'timeline', data: { breadcrumb: 'Timeline' }, component: TimelineDemo },
-    { path: 'table', data: { breadcrumb: 'Table' }, component: TableDemo },
-    { path: 'overlay', data: { breadcrumb: 'Overlay' }, component: OverlayDemo },
-    { path: 'tree', data: { breadcrumb: 'Tree' }, component: TreeDemo },
-    { path: 'menu', data: { breadcrumb: 'Menu' }, component: MenuDemo },
-    { path: '**', redirectTo: '/notfound' }
+  {
+    path: '',
+    component: DemoLayoutComponent,
+    children: [
+      { path: '', redirectTo: 'button', pathMatch: 'full' },
+      { path: 'button', component: ButtonDemo },
+      { path: 'charts', component: ChartDemo },
+      { path: 'file', component: FileDemo },
+      { path: 'formlayout', component: FormLayoutDemo },
+      { path: 'input', component: InputDemo },
+      { path: 'list', component: ListDemo },
+      { path: 'media', component: MediaDemo },
+      { path: 'message', component: MessagesDemo },
+      { path: 'misc', component: MiscDemo },
+      { path: 'panel', component: PanelsDemo },
+      { path: 'timeline', component: TimelineDemo },
+      { path: 'table', component: TableDemo },
+      { path: 'overlay', component: OverlayDemo },
+      { path: 'tree', component: TreeDemo },
+      { path: 'menu', component: MenuDemo }
+    ]
+  }
 ] as Routes;
