@@ -1,22 +1,9 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 
-interface InventoryStatus {
+interface Gender {
     label: string;
     value: string;
-}
-
-export interface Product {
-    id?: string;
-    code?: string;
-    name?: string;
-    description?: string;
-    price?: number;
-    quantity?: number;
-    inventoryStatus?: string;
-    category?: string;
-    image?: string;
-    rating?: number;
 }
 
 @Injectable()
@@ -1273,8 +1260,8 @@ export class ProductService {
         return Promise.resolve(this.getProductsWithOrdersData().slice(0, 10));
     }
 
-    generatePrduct(): Product {
-        const product: Product = {
+    generatePrduct(): any {
+        const product: any = {
             id: this.generateId(),
             name: this.generateName(),
             description: 'Product Description',

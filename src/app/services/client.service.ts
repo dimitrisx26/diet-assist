@@ -101,7 +101,7 @@ export class ClientService {
     }
   }
 
-  async updateClient(id: string, clientData: Partial<ClientFormData>): Promise<{ data: Client | null; error: any }> {
+  async updateClient(id: number, clientData: Partial<ClientFormData>): Promise<{ data: Client | null; error: any }> {
     this._loading.set(true);
 
     const user = this.supabaseService.user();
@@ -124,7 +124,7 @@ export class ClientService {
 
       if (!error && data) {
         const currentClients = this._clients();
-        const updatedClients = currentClients.map(client => 
+        const updatedClients = currentClients.map(client =>
           client.id === id ? data : client
         );
         this._clients.set(updatedClients);
@@ -138,7 +138,7 @@ export class ClientService {
     }
   }
 
-  async deleteClient(id: string): Promise<{ error: any }> {
+  async deleteClient(id: number): Promise<{ error: any }> {
     this._loading.set(true);
 
     const user = this.supabaseService.user();

@@ -6,7 +6,7 @@ import { GalleriaModule } from 'primeng/galleria';
 import { ImageModule } from 'primeng/image';
 import { TagModule } from 'primeng/tag';
 import { PhotoService } from '../service/photo.service';
-import { Product, ProductService } from '../service/product.service';
+import { ProductService } from '../service/product.service';
 
 @Component({
     selector: 'app-media-demo',
@@ -57,7 +57,7 @@ import { Product, ProductService } from '../service/product.service';
     providers: [ProductService, PhotoService]
 })
 export class MediaDemo implements OnInit {
-    products!: Product[];
+    products!: any[];
 
     images!: any[];
 
