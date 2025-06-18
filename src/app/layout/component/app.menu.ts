@@ -31,7 +31,7 @@ export class AppMenu {
       {
         label: 'User Managment',
         items: [
-          { label: 'Users', icon: 'pi pi-fw pi-users', routerLink: ['/users'] },
+          { label: 'Users', icon: 'pi pi-fw pi-users', routerLink: ['/pages/users-list'] },
           { label: 'Messages', icon: 'pi pi-fw pi-inbox', routerLink: ['/messages'] }
         ]
       },

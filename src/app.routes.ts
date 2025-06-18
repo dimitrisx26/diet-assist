@@ -1,8 +1,8 @@
 import { Routes } from '@angular/router';
 import { AppLayout } from './app/layout/component/app.layout';
-import { Dashboard } from './app/pages/dashboard/dashboard';
-import { Landing } from './app/pages/landing/landing';
-import { Notfound } from './app/pages/notfound/notfound';
+import { Dashboard } from './app/pages/admin/dashboard/dashboard';
+import { Landing } from './app/pages/shared/landing/landing';
+import { Notfound } from './app/pages/shared/notfound/notfound';
 import { devOnlyGuard } from './app/pages/guard/devonlyguard.guard';
 
 export const appRoutes: Routes = [
@@ -29,6 +29,6 @@ export const appRoutes: Routes = [
     },
     { path: 'landing', component: Landing },
     { path: 'notfound', component: Notfound },
-    { path: 'auth', loadChildren: () => import('./app/pages/auth/auth.routes') },
+    { path: 'auth', loadChildren: () => import('./app/pages/shared/auth/auth.routes') },
     { path: '**', redirectTo: '/notfound' }
 ];
