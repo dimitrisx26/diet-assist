@@ -4,13 +4,15 @@ import { Dashboard } from './app/pages/admin/dashboard/dashboard';
 import { Landing } from './app/pages/shared/landing/landing';
 import { Notfound } from './app/pages/shared/notfound/notfound';
 import { devOnlyGuard } from './app/pages/guard/devonlyguard.guard';
+import { AuthGuard } from './app/pages/guard/auth.guard';
 
 export const appRoutes: Routes = [
     {
         path: '',
         component: AppLayout,
         children: [
-            { path: '', component: Dashboard },
+            { path: '', component: Dashboard, canActivate: [AuthGuard] },
+            { path: 'dashboard', component: Dashboard, canActivate: [AuthGuard] },
             { 
                 path: 'demo', 
                 loadChildren: () => import('./app/pages/uikit/uikit.routes'),
