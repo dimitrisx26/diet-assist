@@ -24,10 +24,9 @@ export class SupabaseService {
     this.supabase = createClient(environment.supabaseUrl, environment.supabaseKey);
 
     // Initialize with current session
-    this.supabase.auth.getSession().then(({
-      data: { session } }) => {
-        this._session.set(session);
-        this._user.set(session?.user ?? null);
+    this.supabase.auth.getSession().then(({ data: { session } }) => {
+      this._session.set(session);
+      this._user.set(session?.user ?? null);
     });
 
     //Listen for auth changes
@@ -36,7 +35,11 @@ export class SupabaseService {
       this._user.set(session?.user ?? null);
     });
   }
-  
+
+  authStateChange(callback: (event: string, session: any) => void) {
+    return this.supabase.auth.onAuthStateChange(callback);
+  }
+
   async signIn(email: string, password: string) {
     return await this.supabase.auth.signInWithPassword({ email, password });
   }

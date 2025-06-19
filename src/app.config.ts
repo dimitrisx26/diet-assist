@@ -5,12 +5,14 @@ import { provideRouter, withEnabledBlockingInitialNavigation, withInMemoryScroll
 import Lara from '@primeng/themes/lara';
 import { providePrimeNG } from 'primeng/config';
 import { appRoutes } from './app.routes';
+import { MessageService } from 'primeng/api';
 
 export const appConfig: ApplicationConfig = {
     providers: [
         provideRouter(appRoutes, withInMemoryScrolling({ anchorScrolling: 'enabled', scrollPositionRestoration: 'enabled' }), withEnabledBlockingInitialNavigation()),
         provideHttpClient(withFetch()),
         provideAnimationsAsync(),
-        providePrimeNG({ theme: { preset: Lara, options: { darkModeSelector: '.app-dark' } } })
+        providePrimeNG({ theme: { preset: Lara, options: { darkModeSelector: '.app-dark' } } }),
+        MessageService
     ]
 };

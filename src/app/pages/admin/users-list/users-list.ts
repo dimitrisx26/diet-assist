@@ -174,8 +174,6 @@ export class UsersList implements OnInit {
 
   loadClients() {
     this.clientService.getClients().then((res) => {
-      console.log(res);
-
       this.clients.set(res.data || []);
     });
 

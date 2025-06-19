@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, signal } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
@@ -48,7 +48,7 @@ interface AuthError {
               <span class="text-muted-color font-medium">Sign in to continue</span>
             </div>
 
-            <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
+            <form [formGroup]="loginForm" (ngSubmit)="onLogin()">
               <label for="email1" class="block text-surface-900 dark:text-surface-0 text-xl font-medium mb-2">Email</label>
               <input pInputText id="email1" type="email" placeholder="Email address" class="w-full md:w-[30rem] mb-8" formControlName="email" />
 
@@ -80,10 +80,14 @@ export class Login {
 
   error: string | null = null;
 
+  rememberME = signal(false);
+
   constructor(
     private auth: AuthService,
     private fb: FormBuilder
-  ) {}
+  ) {
+    this.rememberME.set(this.auth.isRemembered());
+  }
 
   ngOnInit() {
     this.loginForm = this.fb.group({
@@ -93,13 +97,13 @@ export class Login {
     });
   }
 
-  async onSubmit() {
+  async onLogin() {
     if (this.loginForm.valid) {
       this.loading = true;
       this.error = null;
 
-      const { email, password } = this.loginForm.value;
-      const { data, error } = await this.auth.signIn(email, password);
+      const { email, password, rememberMe } = this.loginForm.value;
+      const { data, error } = await this.auth.signIn(email, password, rememberMe);
 
       if (error) {
         this.error = (error as AuthError)?.message || 'An error occurred during sign in';
