@@ -1,23 +1,16 @@
 import { Component } from '@angular/core';
 import { RouterModule } from '@angular/router';
 import { CommonModule } from '@angular/common';
-import { ProgressSpinner } from 'primeng/progressspinner';
 import { AuthService } from './app/services/auth.service';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [RouterModule, CommonModule, ProgressSpinner],
-  template: ` 
+  imports: [RouterModule, CommonModule],
+  template: `
     @if (auth.isLoading()) {
       <div class="loading-container">
         <div class="loading-content">
-          <p-progressSpinner 
-            strokeWidth="4" 
-            fill="transparent" 
-            animationDuration="1s"
-            styleClass="w-8 h-8">
-          </p-progressSpinner>
           <p class="loading-text">Loading...</p>
         </div>
       </div>
@@ -25,34 +18,35 @@ import { AuthService } from './app/services/auth.service';
       <router-outlet></router-outlet>
     }
   `,
-  styles: [`
-    .loading-container {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      min-height: 100vh;
-      background-color: var(--surface-ground);
-    }
+  styles: [
+    `
+      .loading-container {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 100vh;
+        background-color: var(--surface-ground);
+      }
 
-    .loading-content {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 1rem;
-    }
+      .loading-content {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 1rem;
+      }
 
-    .loading-text {
-      color: var(--text-color-secondary);
-      font-size: 1rem;
-      margin: 0;
-    }
+      .loading-text {
+        color: var(--text-color-secondary);
+        font-size: 1rem;
+        margin: 0;
+      }
 
-    :host ::ng-deep .p-progress-spinner-circle {
-      stroke: var(--primary-color);
-    }
-  `]
+      :host ::ng-deep .p-progress-spinner-circle {
+        stroke: var(--primary-color);
+      }
+    `
+  ]
 })
 export class AppComponent {
   constructor(public auth: AuthService) {}
-
 }
