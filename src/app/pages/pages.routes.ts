@@ -3,7 +3,7 @@ import { UsersList } from './admin/users-list/users-list';
 import { Empty } from './shared/empty/empty';
 
 export default [
-  { path: 'users-list', component: UsersList },
+  { path: 'users', component: UsersList },
   { path: 'empty', component: Empty },
   { path: '**', redirectTo: '/notfound' }
 ] as Routes;

@@ -4,22 +4,21 @@ import { Dashboard } from './app/pages/admin/dashboard/dashboard';
 import { Landing } from './app/pages/shared/landing/landing';
 import { Notfound } from './app/pages/shared/notfound/notfound';
 import { devOnlyGuard } from './app/pages/guard/devonlyguard.guard';
-import { AuthGuard } from './app/pages/guard/auth.guard';
+import { authGuard } from './app/pages/guard/auth.guard';
 
 export const appRoutes: Routes = [
     {
         path: '',
         component: AppLayout,
         children: [
-            { path: '', component: Dashboard, canActivate: [AuthGuard] },
-            { path: 'dashboard', component: Dashboard, canActivate: [AuthGuard] },
+            { path: '', component: Dashboard, canActivate: [authGuard] },
+            { path: 'dashboard', component: Dashboard, canActivate: [authGuard] },
             { 
                 path: 'demo', 
                 loadChildren: () => import('./app/pages/uikit/uikit.routes'),
                 canActivate: [devOnlyGuard]
             },
-            { path: 'pages', loadChildren: () => import('./app/pages/pages.routes') },
-            { path: 'users', component: Dashboard},
+            { path: 'pages', loadChildren: () => import('./app/pages/pages.routes'), canActivateChild: [authGuard] },
             { path: 'messages', component: Dashboard},
             { path: 'meal-planner', component: Dashboard },
             { path: 'nutrition-tracker', component: Dashboard },

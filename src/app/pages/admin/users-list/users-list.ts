@@ -21,6 +21,7 @@ import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { ClientService } from '../../../services/client.service';
 import { Client } from '../../../models/client.model';
 import { AuthService } from '../../../services/auth.service';
+import { RouterModule } from '@angular/router';
 
 interface Column {
   field: string;
@@ -49,6 +50,7 @@ interface ExportColumn {
     TextareaModule,
     SelectModule,
     RadioButtonModule,
+    RouterModule,
     InputNumberModule,
     DialogModule,
     TagModule,
@@ -123,7 +125,15 @@ interface ExportColumn {
           <td style="width: 3rem">
             <p-tableCheckbox [value]="client" />
           </td>
-          <td style="min-width: 4rem">{{ client.id }}</td>
+          <td style="min-width: 4rem">
+            <a 
+              style="color: #34d399; padding: 0.66rem;"
+              [routerLink]="['/user', client.id]"
+              [state]="{ client: client }"
+            >
+              {{ client.id }}
+            </a>
+          </td>
           <td style="min-width: 12rem">{{ client.name }}</td>
           <td style="min-width: 12rem">{{ client.email }}</td>
           <td style="min-width: 12rem">{{ client.phone }}</td>
@@ -166,8 +176,8 @@ export class UsersList implements OnInit {
   constructor(
     private authService: AuthService,
     private clientService: ClientService,
+    private confirmationService: ConfirmationService,
     private messageService: MessageService,
-    private confirmationService: ConfirmationService
   ) {
     // Use effect to react to auth state changes
     effect(() => {
