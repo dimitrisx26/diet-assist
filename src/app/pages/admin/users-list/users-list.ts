@@ -22,6 +22,7 @@ import { ClientService } from '../../../services/client.service';
 import { Client } from '../../../models/client.model';
 import { AuthService } from '../../../services/auth.service';
 import { RouterModule } from '@angular/router';
+import { SkeletonModule } from 'primeng/skeleton';
 
 interface Column {
   field: string;
@@ -49,6 +50,7 @@ interface ExportColumn {
     InputTextModule,
     TextareaModule,
     SelectModule,
+    SkeletonModule,
     RadioButtonModule,
     RouterModule,
     InputNumberModule,
@@ -72,7 +74,6 @@ interface ExportColumn {
     <p-table
       #dt
       [value]="clients()"
-      [loading]="loading()"
       [rows]="10"
       [columns]="cols"
       [paginator]="true"
@@ -122,28 +123,35 @@ interface ExportColumn {
       </ng-template>
       <ng-template #body let-client>
         <tr>
-          <td style="width: 3rem">
-            <p-tableCheckbox [value]="client" />
-          </td>
-          <td style="min-width: 4rem">
-            <a 
-              style="color: #34d399; padding: 0.66rem;"
-              [routerLink]="['/pages/user', client.id]"
-              [state]="{ client: client }"
-            >
-              {{ client.id }}
-            </a>
-          </td>
-          <td style="min-width: 12rem">{{ client.name }}</td>
-          <td style="min-width: 12rem">{{ client.email }}</td>
-          <td style="min-width: 12rem">{{ client.phone }}</td>
-          <td style="min-width: 8rem">{{ client.age }}</td>
-          <td>
-            <p-tag [value]="client.gender" [severity]="getSeverity(client.gender)" />
-          </td>
-          <td>
-            <p-button icon="pi pi-trash" severity="danger" [rounded]="true" [outlined]="true" (click)="deleteClient(client)" />
-          </td>
+          @if (!loading()) {
+            <td style="width: 3rem">
+              <p-tableCheckbox [value]="client" />
+            </td>
+            <td style="min-width: 4rem">
+              <a style="color: #34d399; padding: 0.66rem;" [routerLink]="['/pages/user', client.id]" [state]="{ client: client }">
+                {{ client.id }}
+              </a>
+            </td>
+            <td style="min-width: 12rem">{{ client.name }}</td>
+            <td style="min-width: 12rem">{{ client.email }}</td>
+            <td style="min-width: 12rem">{{ client.phone }}</td>
+            <td style="min-width: 8rem">{{ client.age }}</td>
+            <td>
+              <p-tag [value]="client.gender" [severity]="getSeverity(client.gender)" />
+            </td>
+            <td>
+              <p-button icon="pi pi-trash" severity="danger" [rounded]="true" [outlined]="true" (click)="deleteClient(client)" />
+            </td>
+          } @else {
+            <td><p-skeleton /></td>
+            <td><p-skeleton /></td>
+            <td><p-skeleton /></td>
+            <td><p-skeleton /></td>
+            <td><p-skeleton /></td>
+            <td><p-skeleton /></td>
+            <td><p-skeleton /></td>
+            <td><p-skeleton /></td>
+          }
         </tr>
       </ng-template>
     </p-table>
@@ -177,7 +185,7 @@ export class UsersList implements OnInit {
     private authService: AuthService,
     private clientService: ClientService,
     private confirmationService: ConfirmationService,
-    private messageService: MessageService,
+    private messageService: MessageService
   ) {
     // Use effect to react to auth state changes
     effect(() => {
@@ -258,7 +266,7 @@ export class UsersList implements OnInit {
           detail: 'Failed to load clients',
           life: 3000
         });
-        this.hasLoadedClients = false
+        this.hasLoadedClients = false;
       });
   }
 
