@@ -1,4 +1,4 @@
-import { Component, OnInit, signal, ViewChild } from '@angular/core';
+import { Component, effect, OnInit, signal, ViewChild } from '@angular/core';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { Table, TableModule } from 'primeng/table';
 import { CommonModule } from '@angular/common';
@@ -20,6 +20,7 @@ import { IconFieldModule } from 'primeng/iconfield';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { ClientService } from '../../../services/client.service';
 import { Client } from '../../../models/client.model';
+import { AuthService } from '../../../services/auth.service';
 
 interface Column {
   field: string;
@@ -69,10 +70,11 @@ interface ExportColumn {
     <p-table
       #dt
       [value]="clients()"
+      [loading]="loading()"
       [rows]="10"
       [columns]="cols"
       [paginator]="true"
-      [globalFilterFields]="['name', 'country.name', 'representative.name', 'status']"
+      [globalFilterFields]="['name', 'email', 'phone', 'gender']"
       [tableStyle]="{ 'min-width': '75rem' }"
       [(selection)]="selectedClients"
       [rowHover]="true"
@@ -126,9 +128,8 @@ interface ExportColumn {
           <td style="min-width: 12rem">{{ client.email }}</td>
           <td style="min-width: 12rem">{{ client.phone }}</td>
           <td style="min-width: 8rem">{{ client.age }}</td>
-          <td style="min-width: 8rem">{{ client.gender }}</td>
           <td>
-            <p-tag [value]="client.inventoryStatus" [severity]="getSeverity(client.inventoryStatus)" />
+            <p-tag [value]="client.gender" [severity]="getSeverity(client.gender)" />
           </td>
           <td>
             <p-button icon="pi pi-trash" severity="danger" [rounded]="true" [outlined]="true" (click)="deleteClient(client)" />
@@ -146,6 +147,10 @@ export class UsersList implements OnInit {
 
   client!: Client;
 
+  loading = signal<boolean>(false);
+
+  private hasLoadedClients = false;
+
   selectedClients!: Client[] | null;
 
   submitted: boolean = false;
@@ -159,24 +164,38 @@ export class UsersList implements OnInit {
   cols!: Column[];
 
   constructor(
+    private authService: AuthService,
     private clientService: ClientService,
     private messageService: MessageService,
     private confirmationService: ConfirmationService
-  ) {}
+  ) {
+    // Use effect to react to auth state changes
+    effect(() => {
+      const isAuthenticated = this.authService.isAuthenticated();
+      const initialized = this.authService.initialized();
+
+      if (initialized && isAuthenticated && !this.hasLoadedClients) {
+        this.loadClients();
+      } else if (initialized && !isAuthenticated) {
+        this.messageService.add({
+          severity: 'warn',
+          summary: 'Authentication Required',
+          detail: 'Please log in to access this page',
+          life: 3000
+        });
+      }
+    });
+  }
 
   exportCSV() {
     this.dt.exportCSV();
   }
 
   ngOnInit() {
-    this.loadClients();
+    this.initializeStaticData();
   }
 
-  loadClients() {
-    this.clientService.getClients().then((res) => {
-      this.clients.set(res.data || []);
-    });
-
+  private initializeStaticData() {
     this.genders = [
       { label: 'Male', value: 'male' },
       { label: 'Female', value: 'female' },
@@ -195,6 +214,44 @@ export class UsersList implements OnInit {
     this.exportColumns = this.cols.map((col) => ({ title: col.header, dataKey: col.field }));
   }
 
+  loadClients() {
+    if (this.loading()) {
+      return;
+    }
+
+    this.hasLoadedClients = true;
+    this.loading.set(true);
+
+    this.clientService
+      .getClients()
+      .then((res) => {
+        if (res.error) {
+          console.error('Error loading clients:', res.error);
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Error',
+            detail: res.error.message || 'Failed to load clients',
+            life: 3000
+          });
+          this.hasLoadedClients = false;
+        } else {
+          this.clients.set(res.data || []);
+        }
+        this.loading.set(false);
+      })
+      .catch((error) => {
+        console.error('Error loading clients:', error);
+        this.loading.set(false);
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: 'Failed to load clients',
+          life: 3000
+        });
+        this.hasLoadedClients = false
+      });
+  }
+
   onGlobalFilter(table: Table, event: Event) {
     table.filterGlobal((event.target as HTMLInputElement).value, 'contains');
   }
@@ -207,6 +264,8 @@ export class UsersList implements OnInit {
       accept: () => {
         this.clients.set(this.clients().filter((val) => !this.selectedClients?.includes(val)));
         this.selectedClients = null;
+        this.hasLoadedClients = false;
+
         this.loadClients();
         this.messageService.add({
           severity: 'success',
@@ -226,6 +285,8 @@ export class UsersList implements OnInit {
       accept: () => {
         if (client.id) {
           this.clientService.deleteClient(client.id).then(() => {
+            this.hasLoadedClients = false;
+
             this.loadClients();
             this.client = { name: '', email: '' };
             this.messageService.add({
@@ -249,14 +310,14 @@ export class UsersList implements OnInit {
 
   getSeverity(gender: string) {
     switch (gender) {
-      case 'Male':
-        return 'success';
-      case 'Female':
+      case 'male':
+        return 'info';
+      case 'female':
         return 'danger';
-      case 'Other':
+      case 'other':
         return 'secondary';
       default:
-        return 'info';
+        return 'warning';
     }
   }
 }

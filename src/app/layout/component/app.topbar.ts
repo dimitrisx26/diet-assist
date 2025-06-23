@@ -57,7 +57,7 @@ import { AuthService } from '../../services/auth.service';
             <span>Calendar</span>
           </button>
           <button type="button" class="layout-topbar-action">
-            <i class="pi pi-inbox"></i>
+            <i class="pi pi-comments"></i>
             <span>Messages</span>
           </button>
           <button type="button" class="layout-topbar-action">
