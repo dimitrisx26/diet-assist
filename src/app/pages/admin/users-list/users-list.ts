@@ -128,7 +128,7 @@ interface ExportColumn {
           <td style="min-width: 4rem">
             <a 
               style="color: #34d399; padding: 0.66rem;"
-              [routerLink]="['/user', client.id]"
+              [routerLink]="['/pages/user', client.id]"
               [state]="{ client: client }"
             >
               {{ client.id }}
