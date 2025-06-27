@@ -154,6 +154,17 @@ interface ExportColumn {
           }
         </tr>
       </ng-template>
+      <ng-template #emptymessage>
+        <tr>
+          <td colspan="8" class="text-center p-8">
+            <div class="flex flex-col items-center justify-center">
+              <i class="pi pi-users text-6xl text-gray-400 mb-4"></i>
+              <h3 class="text-xl font-semibold text-gray-600 mb-2">No Clients Found</h3>
+              <p class="text-gray-500">There are currently no clients in the system.</p>
+            </div>
+          </td>
+        </tr>
+      </ng-template>
     </p-table>
 
     <p-toast />
