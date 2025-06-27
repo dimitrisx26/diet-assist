@@ -9,11 +9,17 @@ import { TagModule } from 'primeng/tag';
 import { DividerModule } from 'primeng/divider';
 import { ButtonModule } from 'primeng/button';
 import { ChipModule } from 'primeng/chip';
+import { DialogModule } from 'primeng/dialog';
+import { InputTextModule } from 'primeng/inputtext';
+import { TextareaModule } from 'primeng/textarea';
+import { FormsModule } from '@angular/forms';
+import { MessageService } from 'primeng/api';
+import { ToastModule } from 'primeng/toast';
 
 @Component({
   selector: 'app-user-details',
   standalone: true,
-  imports: [CommonModule, SkeletonModule, CardModule, TagModule, DividerModule, ButtonModule, ChipModule],
+  imports: [CommonModule, SkeletonModule, CardModule, TagModule, DividerModule, ButtonModule, ChipModule, DialogModule, InputTextModule, TextareaModule, FormsModule, ToastModule],
   template: `
     <div class="max-w-screen-2xl mx-auto">
       <!-- Header Section -->
@@ -32,11 +38,7 @@ import { ChipModule } from 'primeng/chip';
             @if (loading.user) {
               <p-skeleton width="80px" height="2rem" />
             } @else if (user?.gender) {
-              <p-tag
-                [style]="{ 'width': '7rem', 'height': '2rem' }"
-                [value]="user?.gender!.toUpperCase()"
-                [severity]="getSeverity(user?.gender!)"
-              />
+              <p-tag [style]="{ width: '7rem', height: '2rem' }" [value]="user?.gender!.toUpperCase()" [severity]="getSeverity(user?.gender!)" />
             }
           </div>
         </p-card>
@@ -321,11 +323,16 @@ import { ChipModule } from 'primeng/chip';
         <div class="col-12">
           <p-card styleClass="border-none shadow-md hover:shadow-lg transition-all duration-300">
             <ng-template #header>
-              <div class="px-4 pt-4 pb-3 lg:px-6 lg:pt-6">
+              <div class="px-4 pt-4 pb-3 lg:px-6 lg:pt-6 flex items-center justify-between">
                 <h3 class="text-xl lg:text-2xl font-bold m-0 flex gap-3 text-surface-900 dark:text-surface-0">
                   <i class="pi pi-flag text-indigo-600 dark:text-indigo-400 text-xl self-center"></i>
                   Goals & Objectives
                 </h3>
+                <div class="flex items-center">
+                  @if (!loading.user && user) {
+                    <p-button icon="pi pi-pencil" severity="info" [outlined]="true" (click)="editGoals()" pTooltip="Edit Goals" label="" />
+                  }
+                </div>
               </div>
             </ng-template>
 
@@ -356,24 +363,34 @@ import { ChipModule } from 'primeng/chip';
         </div>
 
         <!-- Notes -->
-        @if (!loading.user && user?.notes) {
-          <div class="col-12">
-            <p-card styleClass="border-none shadow-md">
-              <ng-template #header>
-                <div class="px-4 pt-4 pb-3 lg:px-6 lg:pt-6">
-                  <h3 class="text-xl lg:text-2xl font-bold m-0 flex gap-3 text-surface-900 dark:text-surface-0">
-                    <i class="pi pi-file-edit text-yellow-600 dark:text-yellow-400 text-xl self-center"></i>
-                    Notes
-                  </h3>
+        <div class="col-12">
+          <p-card styleClass="border-none shadow-md">
+            <ng-template #header>
+              <div class="px-4 pt-4 pb-3 lg:px-6 lg:pt-6 flex items-center justify-between">
+                <h3 class="text-xl lg:text-2xl font-bold m-0 flex gap-3 text-surface-900 dark:text-surface-0">
+                  <i class="pi pi-file-edit text-yellow-600 dark:text-yellow-400 text-xl self-center"></i>
+                  Notes
+                </h3>
+                <div class="flex items-center">
+                  @if (loading.user) {
+                    <div class="flex gap-3">
+                      <p-skeleton width="120px" height="2.5rem" />
+                      <p-skeleton width="100px" height="2.5rem" />
+                      <p-skeleton width="140px" height="2.5rem" />
+                    </div>
+                  }
+                  @if (!loading.user && user) {
+                    <p-button icon="pi pi-pencil" severity="info" [outlined]="true" (click)="editNotes()" pTooltip="Edit Goals" label="" />
+                  }
                 </div>
-              </ng-template>
-
-              <div class="bg-surface-50 dark:bg-surface-800 p-4 lg:p-6 border-round-lg">
-                <p class="text-surface-700 dark:text-surface-200 line-height-3 m-0 text-base lg:text-lg">{{ user?.notes }}</p>
               </div>
-            </p-card>
-          </div>
-        }
+            </ng-template>
+
+            <div class="bg-surface-50 dark:bg-surface-800 p-4 lg:p-6 border-round-lg">
+              <p class="text-surface-700 dark:text-surface-200 line-height-3 m-0 text-base lg:text-lg">{{ user?.notes }}</p>
+            </div>
+          </p-card>
+        </div>
 
         <!-- Metadata -->
         <div class="col-12">
@@ -397,6 +414,67 @@ import { ChipModule } from 'primeng/chip';
         </div>
       </div>
     </div>
+
+    <!-- Goals and Notes Edit Dialog -->
+    <p-dialog [(visible)]="goalsAndNotesDialog" [style]="{ width: '650px' }" [header]="goalsDialog ? 'Manage Goals' : 'Manage Notes'" [modal]="true" styleClass="p-fluid">
+      <ng-template #content>
+        @if (goalsDialog) {
+          <div class="space-y-6">
+            <!-- Goals Section -->
+            <div>
+              <label class="font-semibold text-lg mb-3 flex items-center gap-2">
+                <i class="pi pi-flag text-indigo-600"></i>
+                Goals & Objectives
+              </label>
+
+              <!-- Add Goal Input -->
+              <div class="flex gap-2 mb-3">
+                <input pInputText [(ngModel)]="newGoal" placeholder="Add a new goal..." class="flex-1" (keyup.enter)="addGoal()" />
+                <p-button icon="pi pi-plus" (onClick)="addGoal()" [disabled]="!newGoal.trim()" />
+              </div>
+
+              <!-- Goals List -->
+              <div class="space-y-2">
+                @if (editingClient.goals && editingClient.goals.length > 0) {
+                  @for (goal of editingClient.goals; track goal; let i = $index) {
+                    <div class="flex items-center gap-2 p-3 border border-surface-200 dark:border-surface-700 border-round">
+                      <i class="pi pi-check-circle text-green-500"></i>
+                      <span class="flex-1">{{ goal }}</span>
+                      <p-button icon="pi pi-times" severity="danger" [rounded]="true" [text]="true" size="small" (onClick)="removeGoal(i)" />
+                    </div>
+                  }
+                } @else {
+                  <div class="text-center py-4 text-surface-500">
+                    <i class="pi pi-info-circle text-2xl mb-2 block"></i>
+                    No goals set yet
+                  </div>
+                }
+              </div>
+            </div>
+          </div>
+        }
+
+        @if (notesDialog) {
+          <div class="space-y-6">
+            <!-- Notes Section -->
+            <div>
+              <label class="font-semibold text-lg mb-3 flex items-center gap-2">
+                <i class="pi pi-file-edit text-yellow-600"></i>
+                Notes
+              </label>
+              <textarea pTextarea [(ngModel)]="editingClient.notes" rows="6" placeholder="Add notes..." class="w-full"></textarea>
+            </div>
+          </div>
+        }
+      </ng-template>
+
+      <ng-template #footer>
+        <p-button label="Cancel" icon="pi pi-times" [text]="true" (onClick)="hideDialog()" />
+        <p-button label="Save" icon="pi pi-check" (onClick)="saveGoalsAndNotes()" [loading]="saving" />
+      </ng-template>
+    </p-dialog>
+
+    <p-toast />
   `,
   styles: [
     `
@@ -474,18 +552,25 @@ import { ChipModule } from 'primeng/chip';
         }
       }
     `
-  ]
+  ],
+  providers: [MessageService]
 })
 export class UserDetailsComponent implements OnInit {
+  editingClient!: Client;
+  goalsAndNotesDialog: boolean = false;
+  goalsDialog: boolean = false;
+  notesDialog: boolean = false;
   loading = {
     user: false
   };
-
+  newGoal: string = '';
+  saving: boolean = false;
   user: Client | null = null;
   userID: string | null;
 
   constructor(
     private clientService: ClientService,
+    private messageService: MessageService,
     private route: ActivatedRoute,
     private router: Router
   ) {
@@ -508,6 +593,63 @@ export class UserDetailsComponent implements OnInit {
         .finally(() => {
           this.loading.user = false;
         });
+    }
+  }
+
+  addGoal() {
+    if (this.newGoal?.trim()) {
+      if (!this.editingClient.goals) {
+        this.editingClient.goals = [];
+      }
+      this.editingClient.goals.push(this.newGoal.trim());
+      this.newGoal = '';
+    }
+  }
+
+  editGoals() {
+    if (!this.user) return;
+
+    this.editingClient = {
+      ...this.user,
+      goals: [...(this.user.goals || [])]
+    };
+
+    this.newGoal = '';
+    this.goalsAndNotesDialog = true;
+    this.goalsDialog = true;
+  }
+
+  editNotes() {
+    if (!this.user) return;
+
+    this.editingClient = {
+      ...this.user,
+      notes: this.user.notes || ''
+    };
+
+    this.goalsAndNotesDialog = true;
+    this.notesDialog = true;
+  }
+
+  formatActivityLevel(level?: string): string {
+    if (!level) return 'Not specified';
+    return level.replace(/_/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase());
+  }
+
+  getActivitySeverity(level?: string): 'success' | 'info' | 'warning' | 'danger' | 'secondary' | 'contrast' | null {
+    switch (level) {
+      case 'sedentary':
+        return 'danger';
+      case 'lightly_active':
+        return 'warning';
+      case 'moderately_active':
+        return 'info';
+      case 'very_active':
+        return 'success';
+      case 'super_active':
+        return 'success';
+      default:
+        return 'secondary';
     }
   }
 
@@ -535,11 +677,6 @@ export class UserDetailsComponent implements OnInit {
     return Math.round(this.clientService.calculateDailyCalories(bmr, this.user.activity_level));
   }
 
-  formatActivityLevel(level?: string): string {
-    if (!level) return 'Not specified';
-    return level.replace(/_/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase());
-  }
-
   getSeverity(gender: string): 'success' | 'info' | 'warning' | 'danger' | 'secondary' | 'contrast' | null {
     switch (gender) {
       case 'male':
@@ -553,20 +690,79 @@ export class UserDetailsComponent implements OnInit {
     }
   }
 
-  getActivitySeverity(level?: string): 'success' | 'info' | 'warning' | 'danger' | 'secondary' | 'contrast' | null {
-    switch (level) {
-      case 'sedentary':
-        return 'danger';
-      case 'lightly_active':
-        return 'warning';
-      case 'moderately_active':
-        return 'info';
-      case 'very_active':
-        return 'success';
-      case 'super_active':
-        return 'success';
-      default:
-        return 'secondary';
+  hideDialog() {
+    this.goalsAndNotesDialog = false;
+    this.goalsDialog = false;
+    this.notesDialog = false;
+    this.editingClient = { name: '', email: '' };
+    this.newGoal = '';
+    this.saving = false;
+  }
+
+  removeGoal(index: number) {
+    if (this.editingClient.goals) {
+      this.editingClient.goals.splice(index, 1);
     }
+  }
+
+  saveGoalsAndNotes() {
+    if (!this.editingClient.id) {
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Error',
+        detail: 'Cannot save: Invalid client ID',
+        life: 3000
+      });
+      return;
+    }
+
+    this.saving = true;
+
+    const updateData = {
+      goals: this.editingClient.goals || [],
+      notes: this.editingClient.notes || ''
+    };
+
+    this.clientService
+      .updateClient(this.editingClient.id, updateData)
+      .then((res) => {
+        if (res.error) {
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Error',
+            detail: res.error.message || 'Failed to update client',
+            life: 3000
+          });
+        } else {
+          // Update the local user object
+          if (this.user) {
+            this.user = {
+              ...this.user,
+              goals: updateData.goals,
+              notes: updateData.notes
+            };
+          }
+
+          this.messageService.add({
+            severity: 'success',
+            summary: 'Success',
+            detail: this.goalsDialog ? 'Goals updated successfully' : 'Notes updated successfully',
+            life: 3000
+          });
+          this.hideDialog();
+        }
+      })
+      .catch((error) => {
+        console.error('Error updating client:', error);
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: 'Failed to update client',
+          life: 3000
+        });
+      })
+      .finally(() => {
+        this.saving = false;
+      });
   }
 }
