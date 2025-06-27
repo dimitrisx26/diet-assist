@@ -73,7 +73,7 @@ interface ExportColumn {
 
     <p-table
       #dt
-      [value]="clients()"
+      [value]="getTableData()"
       [rows]="10"
       [columns]="cols"
       [paginator]="true"
@@ -123,7 +123,16 @@ interface ExportColumn {
       </ng-template>
       <ng-template #body let-client>
         <tr>
-          @if (!loading()) {
+          @if (loading()) {
+            <td style="width: 3rem"><p-skeleton /></td>
+            <td style="min-width: 4rem"><p-skeleton /></td>
+            <td style="min-width: 12rem"><p-skeleton /></td>
+            <td style="min-width: 12rem"><p-skeleton /></td>
+            <td style="min-width: 12rem"><p-skeleton /></td>
+            <td style="min-width: 8rem"><p-skeleton /></td>
+            <td style="min-width: 8rem"><p-skeleton /></td>
+            <td><p-skeleton /></td>
+          } @else {
             <td style="width: 3rem">
               <p-tableCheckbox [value]="client" />
             </td>
@@ -142,20 +151,12 @@ interface ExportColumn {
             <td>
               <p-button icon="pi pi-trash" severity="danger" [rounded]="true" [outlined]="true" (click)="deleteClient(client)" />
             </td>
-          } @else {
-            <td><p-skeleton /></td>
-            <td><p-skeleton /></td>
-            <td><p-skeleton /></td>
-            <td><p-skeleton /></td>
-            <td><p-skeleton /></td>
-            <td><p-skeleton /></td>
-            <td><p-skeleton /></td>
-            <td><p-skeleton /></td>
           }
         </tr>
       </ng-template>
     </p-table>
 
+    <p-toast />
     <p-confirmdialog [style]="{ width: '450px' }" />
   `,
   providers: [MessageService, ClientService, ConfirmationService]
@@ -207,6 +208,19 @@ export class UsersList implements OnInit {
 
   exportCSV() {
     this.dt.exportCSV();
+  }
+
+  getTableData() {
+    if (this.loading()) {
+      // Return placeholder data for skeleton loading
+      return Array(10).fill({}).map((_, index) => ({ 
+        id: index, 
+        name: '', 
+        email: '' 
+      } as Client));
+    }
+
+    return this.clients();
   }
 
   ngOnInit() {
