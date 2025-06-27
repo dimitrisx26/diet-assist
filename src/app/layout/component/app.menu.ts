@@ -39,9 +39,9 @@ export class AppMenu {
         label: 'Diet Assistant',
         items: [
           { label: 'Meal Planner', icon: 'pi pi-fw pi-calendar', routerLink: ['/meal-planner'] },
+          { label: 'Meal Templates', icon: 'pi pi-fw pi-clone', routerLink: ['/pages/meal-plan-templates'] },
           { label: 'Nutrition Tracker', icon: 'pi pi-fw pi-chart-bar', routerLink: ['/nutrition-tracker'] },
-          { label: 'Recipes', icon: 'pi pi-fw pi-book', routerLink: ['/recipes'] },
-          { label: 'Food Database', icon: 'pi pi-fw pi-database', routerLink: ['/food-database'] }
+          { label: 'Recipes', icon: 'pi pi-fw pi-book', routerLink: ['/recipes'] }
         ]
       },
       {

@@ -7,29 +7,29 @@ import { devOnlyGuard } from './app/pages/guard/devonlyguard.guard';
 import { authGuard } from './app/pages/guard/auth.guard';
 
 export const appRoutes: Routes = [
-    {
-        path: '',
-        component: AppLayout,
-        children: [
-            { path: '', component: Dashboard, canActivate: [authGuard] },
-            { path: 'dashboard', component: Dashboard, canActivate: [authGuard] },
-            { 
-                path: 'demo', 
-                loadChildren: () => import('./app/pages/uikit/uikit.routes'),
-                canActivate: [devOnlyGuard]
-            },
-            { path: 'pages', loadChildren: () => import('./app/pages/pages.routes'), canActivateChild: [authGuard] },
-            { path: 'messages', component: Dashboard},
-            { path: 'meal-planner', component: Dashboard },
-            { path: 'nutrition-tracker', component: Dashboard },
-            { path: 'recipes', component: Dashboard },
-            { path: 'food-database', component: Dashboard },
-            { path: 'profile', component: Dashboard },
-            { path: 'preferences', component: Dashboard }
-        ]
-    },
-    { path: 'landing', component: Landing },
-    { path: 'notfound', component: Notfound },
-    { path: 'auth', loadChildren: () => import('./app/pages/shared/auth/auth.routes') },
-    { path: '**', redirectTo: '/notfound' }
+  {
+    path: '',
+    component: AppLayout,
+    children: [
+      { path: '', component: Dashboard, canActivate: [authGuard] },
+      { path: 'dashboard', component: Dashboard, canActivate: [authGuard] },
+      {
+        path: 'demo',
+        loadChildren: () => import('./app/pages/uikit/uikit.routes'),
+        canActivate: [devOnlyGuard]
+      },
+      { path: 'pages', loadChildren: () => import('./app/pages/pages.routes'), canActivateChild: [authGuard] },
+      { path: 'messages', component: Dashboard },
+      { path: 'meal-planner', component: Dashboard },
+      { path: 'nutrition-tracker', component: Dashboard },
+      { path: 'recipes', component: Dashboard },
+      { path: 'food-database', component: Dashboard },
+      { path: 'profile', component: Dashboard },
+      { path: 'preferences', component: Dashboard }
+    ]
+  },
+  { path: 'landing', component: Landing },
+  { path: 'notfound', component: Notfound },
+  { path: 'auth', loadChildren: () => import('./app/pages/shared/auth/auth.routes') },
+  { path: '**', redirectTo: '/notfound' }
 ];
