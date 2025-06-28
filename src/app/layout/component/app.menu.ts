@@ -26,12 +26,12 @@ export class AppMenu {
     this.model = [
       {
         label: 'Dashboard',
-        items: [{ label: 'Dashboard', icon: 'pi pi-fw pi-home', routerLink: ['/'] }]
+        items: [{ label: 'Dashboard', icon: 'pi pi-fw pi-home', routerLink: ['/dashboard'] }]
       },
       {
-        label: 'User Managment',
+        label: 'User Management',
         items: [
-          { label: 'Users', icon: 'pi pi-fw pi-users', routerLink: ['/pages/users'] },
+          { label: 'Users', icon: 'pi pi-fw pi-users', routerLink: ['/admin/users'] },
           { label: 'Messages', icon: 'pi pi-fw pi-comments', routerLink: ['/messages'] }
         ]
       },
@@ -39,7 +39,7 @@ export class AppMenu {
         label: 'Diet Assistant',
         items: [
           { label: 'Meal Planner', icon: 'pi pi-fw pi-calendar', routerLink: ['/meal-planner'] },
-          { label: 'Meal Templates', icon: 'pi pi-fw pi-clone', routerLink: ['/pages/meal-plan-templates'] },
+          { label: 'Meal Templates', icon: 'pi pi-fw pi-clone', routerLink: ['/admin/meal-plan-templates'] },
           { label: 'Nutrition Tracker', icon: 'pi pi-fw pi-chart-bar', routerLink: ['/nutrition-tracker'] },
           { label: 'Recipes', icon: 'pi pi-fw pi-book', routerLink: ['/recipes'] }
         ]
@@ -47,7 +47,6 @@ export class AppMenu {
       {
         label: 'Settings',
         items: [
-          { label: 'Profile', icon: 'pi pi-fw pi-user', routerLink: ['/profile'] },
           { label: 'Preferences', icon: 'pi pi-fw pi-cog', routerLink: ['/preferences'] }
         ]
       }

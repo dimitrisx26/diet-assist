@@ -15,7 +15,7 @@ import { AuthService } from '../../services/auth.service';
       <button class="layout-menu-button layout-topbar-action" (click)="layoutService.onMenuToggle()">
         <i class="pi pi-bars"></i>
       </button>
-      <a class="layout-topbar-logo" routerLink="/">
+      <a class="layout-topbar-logo" routerLink="/dashboard">
         <svg viewBox="0 0 150 150" fill="none" xmlns="http://www.w3.org/2000/svg" class="w-16 shrink-0 mx-auto">
           <g transform="translate(0.000000,150.000000) scale(0.100000,-0.100000)" fill="var(--primary-color)" stroke="none">
             <path
@@ -52,15 +52,15 @@ import { AuthService } from '../../services/auth.service';
 
       <div class="layout-topbar-menu hidden lg:block">
         <div class="layout-topbar-menu-content">
-          <button type="button" class="layout-topbar-action">
+          <button type="button" class="layout-topbar-action" routerLink="/meal-planner">
             <i class="pi pi-calendar"></i>
             <span>Calendar</span>
           </button>
-          <button type="button" class="layout-topbar-action">
+          <button type="button" class="layout-topbar-action" routerLink="/messages">
             <i class="pi pi-comments"></i>
             <span>Messages</span>
           </button>
-          <button type="button" class="layout-topbar-action">
+          <button type="button" class="layout-topbar-action" routerLink="/profile">
             <i class="pi pi-user"></i>
             <span>Profile</span>
           </button>

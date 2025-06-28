@@ -137,7 +137,7 @@ interface ExportColumn {
               <p-tableCheckbox [value]="client" />
             </td>
             <td style="min-width: 4rem">
-              <a style="color: #34d399; padding: 0.66rem;" [routerLink]="['/pages/user', client.id]" [state]="{ client: client }">
+              <a style="color: #34d399; padding: 0.66rem;" [routerLink]="['/admin/user', client.id]" [state]="{ client: client }">
                 {{ client.id }}
               </a>
             </td>
