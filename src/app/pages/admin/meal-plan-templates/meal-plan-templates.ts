@@ -9,15 +9,31 @@ import { InputTextModule } from 'primeng/inputtext';
 import { FormsModule } from '@angular/forms';
 import { ToastModule } from 'primeng/toast';
 import { SkeletonModule } from 'primeng/skeleton';
+import { MultiSelectModule } from 'primeng/multiselect';
 import { MealPlanTemplate } from '../../../models/meal-plan.model';
+import { Client } from '../../../models/client.model';
 import { MessageService } from 'primeng/api';
 import { MealPlanTemplateService } from '../../../services/meal-plan-templates.service';
+import { ClientService } from '../../../services/client.service';
 import { DatePicker } from 'primeng/datepicker';
 
 @Component({
   selector: 'app-meal-plan-templates',
   standalone: true,
-  imports: [CommonModule, RouterModule, ButtonModule, CardModule, TagModule, DialogModule, InputTextModule, DatePicker, FormsModule, ToastModule, SkeletonModule],
+  imports: [
+    CommonModule, 
+    RouterModule, 
+    ButtonModule, 
+    CardModule, 
+    TagModule, 
+    DialogModule, 
+    InputTextModule, 
+    DatePicker, 
+    FormsModule, 
+    ToastModule, 
+    SkeletonModule,
+    MultiSelectModule
+  ],
   template: `
     <div class="card">
       <h3>Meal Plan Templates</h3>
@@ -106,7 +122,13 @@ import { DatePicker } from 'primeng/datepicker';
     </div>
 
     <!-- Create Meal Plan Dialog -->
-    <p-dialog header="Create Meal Plan from Template" [(visible)]="showDialog" [modal]="true" [style]="{ width: '450px' }">
+    <p-dialog 
+      header="Create Meal Plan from Template" 
+      [(visible)]="showDialog" 
+      [modal]="true" 
+      [style]="{ width: '550px' }"
+      [appendTo]="'body'">
+      
       @if (selectedTemplate) {
         <div class="space-y-4">
           <div>
@@ -116,24 +138,88 @@ import { DatePicker } from 'primeng/datepicker';
 
           <div>
             <label for="planName" class="block text-sm font-medium mb-2">Plan Name</label>
-            <input pInputText id="planName" [(ngModel)]="newPlanName" class="w-full" placeholder="My Custom Meal Plan" />
+            <input 
+              pInputText 
+              id="planName" 
+              [(ngModel)]="newPlanName" 
+              class="w-full" 
+              placeholder="My Custom Meal Plan" />
           </div>
 
           <div>
             <label for="startDate" class="block text-sm font-medium mb-2">Start Date</label>
-            <p-datepicker [(ngModel)]="startDate" [showIcon]="true" appendTo="body" inputId="startDate" class="w-full" />
+            <p-datepicker 
+              [(ngModel)]="startDate" 
+              [showIcon]="true" 
+              appendTo="body" 
+              inputId="startDate" 
+              class="w-full" />
           </div>
 
           <div>
-            <label for="clientId" class="block text-sm font-medium mb-2">Client ID</label>
-            <input pInputText id="clientId" [(ngModel)]="clientId" type="number" class="w-full" placeholder="Enter client ID" />
+            <label for="clients" class="block text-sm font-medium mb-2">
+              Select Clients
+              <span class="text-red-500">*</span>
+            </label>
+            <p-multiselect 
+              [(ngModel)]="selectedClients"
+              [options]="clients()"
+              optionLabel="name"
+              optionValue="id"
+              placeholder="Choose clients..."
+              [filter]="true"
+              filterBy="name,email"
+              [showToggleAll]="true"
+              [showHeader]="true"
+              appendTo="body"
+              class="w-full"
+              [loading]="loadingClients()"
+              [disabled]="loadingClients()">
+              
+              <ng-template #selectedItems let-value>
+                <div class="flex flex-wrap gap-1">
+                  @for (clientId of value; track clientId) {
+                    @if (getClientById(clientId); as client) {
+                      <div class="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs">
+                        {{ client.name }}
+                      </div>
+                    }
+                  }
+                </div>
+              </ng-template>
+              
+              <ng-template #item let-client>
+                <div class="flex items-center justify-between w-full">
+                  <div class="flex-1">
+                    <div class="font-medium">{{ client.name }}</div>
+                    <div class="text-sm text-gray-500">{{ client.email }}</div>
+                  </div>
+                  <div class="text-xs text-gray-400">
+                    ID: {{ client.id }}
+                  </div>
+                </div>
+              </ng-template>
+            </p-multiselect>
+            
+            @if (selectedClients && selectedClients.length > 0) {
+              <div class="mt-2 text-sm text-gray-600">
+                {{ selectedClients.length }} client(s) selected
+              </div>
+            }
           </div>
         </div>
 
         <ng-template #footer>
           <div class="flex justify-end gap-2 mt-4">
-            <p-button label="Cancel" severity="secondary" (onClick)="hideDialog()" />
-            <p-button label="Create Plan" (onClick)="createPlan()" [loading]="creating()" />
+            <p-button 
+              label="Cancel" 
+              severity="secondary" 
+              (onClick)="hideDialog()" />
+            <p-button 
+              label="Create Plans" 
+              (onClick)="createPlans()" 
+              [loading]="creating()"
+              [disabled]="!selectedClients || selectedClients.length === 0" />
           </div>
         </ng-template>
       }
@@ -144,7 +230,9 @@ import { DatePicker } from 'primeng/datepicker';
 })
 export class MealPlanTemplatesComponent implements OnInit {
   templates = signal<MealPlanTemplate[]>([]);
+  clients = signal<Client[]>([]);
   loading = signal(false);
+  loadingClients = signal(false);
   creating = signal(false);
 
   // Skeleton items for loading state
@@ -154,23 +242,22 @@ export class MealPlanTemplatesComponent implements OnInit {
   selectedTemplate: MealPlanTemplate | null = null;
   newPlanName = '';
   startDate: Date | null = null;
-  clientId: number | null = null;
+  selectedClients: number[] = [];
 
   constructor(
     private templateService: MealPlanTemplateService,
+    private clientService: ClientService,
     private messageService: MessageService
   ) {}
 
   ngOnInit() {
     this.loadTemplates();
+    this.loadClients();
   }
 
   async loadTemplates() {
     this.loading.set(true);
     try {
-      // Add a small delay to show skeleton effect (remove in production)
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-
       const { data, error } = await this.templateService.getTemplates();
       if (error) {
         throw error;
@@ -185,6 +272,29 @@ export class MealPlanTemplatesComponent implements OnInit {
     } finally {
       this.loading.set(false);
     }
+  }
+
+  async loadClients() {
+    this.loadingClients.set(true);
+    try {
+      const { data, error } = await this.clientService.getClients();
+      if (error) {
+        throw error;
+      }
+      this.clients.set(data || []);
+    } catch (error) {
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Error',
+        detail: 'Failed to load clients'
+      });
+    } finally {
+      this.loadingClients.set(false);
+    }
+  }
+
+  getClientById(id: number): Client | undefined {
+    return this.clients().find(client => client.id === id);
   }
 
   getAudienceSeverity(audience?: string): string {
@@ -211,6 +321,7 @@ export class MealPlanTemplatesComponent implements OnInit {
     this.selectedTemplate = template;
     this.newPlanName = `${template.name} - ${new Date().toLocaleDateString()}`;
     this.startDate = new Date();
+    this.selectedClients = [];
     this.showDialog = true;
   }
 
@@ -219,30 +330,56 @@ export class MealPlanTemplatesComponent implements OnInit {
     this.selectedTemplate = null;
     this.newPlanName = '';
     this.startDate = null;
-    this.clientId = null;
+    this.selectedClients = [];
   }
 
-  async createPlan() {
-    if (!this.selectedTemplate || !this.startDate || !this.clientId) {
+  async createPlans() {
+    if (!this.selectedTemplate || !this.startDate || !this.selectedClients || this.selectedClients.length === 0) {
       this.messageService.add({
         severity: 'warn',
         summary: 'Validation',
-        detail: 'Please fill in all required fields'
+        detail: 'Please fill in all required fields and select at least one client'
       });
       return;
     }
 
     this.creating.set(true);
+    
     try {
-      const { data, error } = await this.templateService.createMealPlanFromTemplate(this.selectedTemplate.id!, this.clientId, this.startDate.toISOString().split('T')[0], this.newPlanName);
-
-      if (error) throw error;
-
-      this.messageService.add({
-        severity: 'success',
-        summary: 'Success',
-        detail: 'Meal plan created successfully!'
+      const promises = this.selectedClients.map(async (clientId) => {
+        const client = this.getClientById(clientId);
+        const planName = this.selectedClients.length === 1 
+          ? this.newPlanName 
+          : `${this.newPlanName} - ${client?.name}`;
+        
+        return this.templateService.createMealPlanFromTemplate(
+          this.selectedTemplate!.id!,
+          clientId,
+          this.startDate!.toISOString().split('T')[0],
+          planName
+        );
       });
+
+      const results = await Promise.allSettled(promises);
+      
+      const successful = results.filter(result => result.status === 'fulfilled').length;
+      const failed = results.filter(result => result.status === 'rejected').length;
+
+      if (successful > 0) {
+        this.messageService.add({
+          severity: 'success',
+          summary: 'Success',
+          detail: `${successful} meal plan(s) created successfully!${failed > 0 ? ` ${failed} failed.` : ''}`
+        });
+      }
+
+      if (failed > 0 && successful === 0) {
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: 'Failed to create meal plans'
+        });
+      }
 
       this.hideDialog();
     } catch (error) {

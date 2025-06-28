@@ -1,13 +1,11 @@
-import { Injectable, signal } from '@angular/core';
+import { Injectable } from '@angular/core';
 import { SupabaseService } from './supabase.service';
-import { MealPlanTemplate, TemplateDay, TemplateMeal, MealPlan, MealIngredient } from '../models/meal-plan.model';
+import { MealPlanTemplate, MealPlan, MealIngredient } from '../models/meal-plan.model';
 
 @Injectable({
   providedIn: 'root'
 })
 export class MealPlanTemplateService {
-  private templates = signal<MealPlanTemplate[]>([]);
-
   constructor(private supabase: SupabaseService) {}
 
   async getTemplates(): Promise<{ data: MealPlanTemplate[] | null; error: any }> {
@@ -38,38 +36,19 @@ export class MealPlanTemplateService {
     }
   }
 
-  async getTemplatesByAudience(audience: string): Promise<{ data: MealPlanTemplate[] | null; error: any }> {
+  async createMealPlanFromTemplate(
+    templateId: number, 
+    clientId: number, 
+    startDate: string, 
+    name?: string
+  ): Promise<{ data: MealPlan | null; error: any }> {
     try {
-      const { data, error } = await this.supabase.client
-        .from('meal_plan_templates')
-        .select('*')
-        .eq('target_audience', audience)
-        .eq('is_public', true);
+      // Get current user
+      const { data: { user } } = await this.supabase.client.auth.getUser();
+      if (!user) {
+        throw new Error('User not authenticated');
+      }
 
-      if (error) throw error;
-      return { data, error: null };
-    } catch (error) {
-      return { data: null, error };
-    }
-  }
-
-  async createTemplate(template: Partial<MealPlanTemplate>): Promise<{ data: MealPlanTemplate | null; error: any }> {
-    try {
-      const { data, error } = await this.supabase.client
-        .from('meal_plan_templates')
-        .insert([template])
-        .select()
-        .single();
-
-      if (error) throw error;
-      return { data, error: null };
-    } catch (error) {
-      return { data: null, error };
-    }
-  }
-
-  async createMealPlanFromTemplate(templateId: number, clientId: number, startDate: string, name?: string): Promise<{ data: MealPlan | null; error: any }> {
-    try {
       // First, get the template with all its data
       const { data: template, error: templateError } = await this.supabase.client
         .from('meal_plan_templates')
@@ -91,7 +70,7 @@ export class MealPlanTemplateService {
 
       if (templateError) throw templateError;
 
-      // Create the meal plan
+      // Create the meal plan with created_by field
       const mealPlanData = {
         client_id: clientId,
         name: name || `${template.name} - ${new Date(startDate).toLocaleDateString()}`,
@@ -99,7 +78,8 @@ export class MealPlanTemplateService {
         plan_type: template.plan_type,
         start_date: startDate,
         daily_calories: template.daily_calories,
-        is_active: true
+        is_active: true,
+        created_by: user.id // This is crucial for RLS
       };
 
       const { data: mealPlan, error: planError } = await this.supabase.client
@@ -108,10 +88,15 @@ export class MealPlanTemplateService {
         .select()
         .single();
 
-      if (planError) throw planError;
+      if (planError) {
+        console.error('Error creating meal plan:', planError);
+        throw planError;
+      }
 
-      // The days will be created automatically by the trigger
-      // Now we need to populate the meals for each day
+      // Wait a moment for the trigger to create days
+      await new Promise(resolve => setTimeout(resolve, 1000));
+
+      // Now populate the meals for each day
       if (template.days) {
         for (const templateDay of template.days) {
           // Get the corresponding meal plan day
@@ -122,7 +107,10 @@ export class MealPlanTemplateService {
             .eq('day_number', templateDay.day_number)
             .single();
 
-          if (dayError) continue;
+          if (dayError) {
+            console.warn(`Could not find day ${templateDay.day_number}:`, dayError);
+            continue;
+          }
 
           // Create meals for this day
           if (templateDay.meals) {
@@ -145,9 +133,13 @@ export class MealPlanTemplateService {
                 .select()
                 .single();
 
-              if (mealError) continue;
+              if (mealError) {
+                console.warn(`Could not create meal ${templateMeal.name}:`, mealError);
+                continue;
+              }
 
-              if (templateMeal.ingredients) {
+              // Create ingredients for this meal
+              if (templateMeal.ingredients && templateMeal.ingredients.length > 0) {
                 const ingredientsData = templateMeal.ingredients.map((ing: MealIngredient) => ({
                   meal_id: meal.id,
                   food_id: ing.food_id,
@@ -155,9 +147,13 @@ export class MealPlanTemplateService {
                   unit: ing.unit
                 }));
 
-                await this.supabase.client
+                const { error: ingredientsError } = await this.supabase.client
                   .from('meal_ingredients')
                   .insert(ingredientsData);
+
+                if (ingredientsError) {
+                  console.warn(`Could not create ingredients for meal ${templateMeal.name}:`, ingredientsError);
+                }
               }
             }
           }
