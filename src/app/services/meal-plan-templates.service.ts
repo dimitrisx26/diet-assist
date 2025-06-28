@@ -185,4 +185,24 @@ export class MealPlanTemplateService {
       return { data: null, error };
     }
   }
+
+  async deleteTemplate(template: MealPlanTemplate): Promise<{ data: MealPlanTemplate | null; error: any }> {
+    try {
+      // Get current user
+      const {
+        data: { user }
+      } = await this.supabase.client.auth.getUser();
+      if (!user) {
+        throw new Error('User not authenticated');
+      }
+
+      const { data, error } = await this.supabase.client.from('meal_plan_templates').delete().eq('id', template.id).single();
+
+      if (error) throw error;
+      return { data, error: null };
+    } catch (error) {
+      console.error('Error creating template:', error);
+      return { data: null, error };
+    }
+  }
 }

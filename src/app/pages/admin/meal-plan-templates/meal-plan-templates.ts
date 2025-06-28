@@ -10,7 +10,6 @@ import { FormsModule } from '@angular/forms';
 import { ToastModule } from 'primeng/toast';
 import { SkeletonModule } from 'primeng/skeleton';
 import { MultiSelectModule } from 'primeng/multiselect';
-import { DropdownModule } from 'primeng/dropdown';
 import { TextareaModule } from 'primeng/textarea';
 import { InputNumberModule } from 'primeng/inputnumber';
 import { MealPlanTemplate } from '../../../models/meal-plan.model';
@@ -19,11 +18,12 @@ import { MessageService } from 'primeng/api';
 import { MealPlanTemplateService } from '../../../services/meal-plan-templates.service';
 import { ClientService } from '../../../services/client.service';
 import { DatePicker } from 'primeng/datepicker';
+import { SelectModule } from 'primeng/select';
 
 @Component({
   selector: 'app-meal-plan-templates',
   standalone: true,
-  imports: [CommonModule, RouterModule, ButtonModule, CardModule, TagModule, DialogModule, InputTextModule, DatePicker, FormsModule, ToastModule, SkeletonModule, MultiSelectModule, DropdownModule, TextareaModule, InputNumberModule],
+  imports: [CommonModule, RouterModule, ButtonModule, CardModule, TagModule, DialogModule, InputTextModule, DatePicker, FormsModule, ToastModule, SkeletonModule, MultiSelectModule, SelectModule, TextareaModule, InputNumberModule],
   template: `
     <div class="card">
       <div class="flex justify-between items-center mb-6">
@@ -96,9 +96,12 @@ import { DatePicker } from 'primeng/datepicker';
               </ng-template>
 
               <ng-template #footer>
-                <div class="flex gap-2">
-                  <p-button label="Preview" icon="pi pi-eye" severity="secondary" size="small" (onClick)="previewTemplate(template)" />
-                  <p-button label="Use Template" icon="pi pi-plus" size="small" (onClick)="showCreateDialog(template)" />
+                <div class="flex gap-2 justify-between">
+                  <div class="flex gap-2">
+                    <p-button label="Preview" icon="pi pi-eye" severity="secondary" size="small" (onClick)="previewTemplate(template)" />
+                    <p-button label="Use Template" icon="pi pi-plus" size="small" (onClick)="showCreateDialog(template)" />
+                  </div>
+                  <p-button icon="pi pi-trash" severity="danger" size="small" (onClick)="deleteTemplate(template)" />
                 </div>
               </ng-template>
             </p-card>
@@ -127,7 +130,7 @@ import { DatePicker } from 'primeng/datepicker';
 
           <div>
             <label for="planType" class="block text-sm font-medium mb-2"> Plan Type <span class="text-red-500">*</span> </label>
-            <p-dropdown [(ngModel)]="newTemplate.plan_type" [options]="planTypeOptions" appendTo="body" optionLabel="label" optionValue="value" placeholder="Select plan type" class="w-full" />
+            <p-select [(ngModel)]="newTemplate.plan_type" [options]="planTypeOptions" appendTo="body" optionLabel="label" optionValue="value" placeholder="Select plan type" class="w-full" />
           </div>
         </div>
 
@@ -138,8 +141,8 @@ import { DatePicker } from 'primeng/datepicker';
 
         <div class="grid grid-cols-2 gap-4">
           <div>
-            <label for="targetAudience" class="block text-sm font-medium mb-2">Target Audience</label>
-            <p-dropdown [(ngModel)]="newTemplate.target_audience" [options]="audienceOptions" appendTo="body" optionLabel="label" optionValue="value" placeholder="Select target audience" class="w-full" />
+            <label for="targetAudience" class="block text-sm font-medium mb-2">Target Audience <span class="text-red-500">*</span> </label>
+            <p-select [(ngModel)]="newTemplate.target_audience" [options]="audienceOptions" appendTo="body" optionLabel="label" optionValue="value" placeholder="Select target audience" class="w-full" />
           </div>
 
           <div>
@@ -463,7 +466,7 @@ export class MealPlanTemplatesComponent implements OnInit {
   }
 
   isTemplateFormValid(): boolean {
-    if (!this.newTemplate.name || !this.newTemplate.plan_type) {
+    if (!this.newTemplate.name || !this.newTemplate.plan_type || !this.newTemplate.target_audience) {
       return false;
     }
 
@@ -509,7 +512,6 @@ export class MealPlanTemplatesComponent implements OnInit {
       this.hideCreateTemplateDialog();
       this.loadTemplates(); // Refresh the templates list
     } catch (error) {
-      console.error('Error creating template:', error);
       this.messageService.add({
         severity: 'error',
         summary: 'Error',
@@ -517,6 +519,30 @@ export class MealPlanTemplatesComponent implements OnInit {
       });
     } finally {
       this.creatingTemplate.set(false);
+    }
+  }
+
+  async deleteTemplate(template: MealPlanTemplate) {
+    try {
+      const result = await this.templateService.deleteTemplate(template);
+
+      if (result.error) {
+        throw result.error;
+      }
+
+      this.messageService.add({
+        severity: 'success',
+        summary: 'Success',
+        detail: 'Template deleted!'
+      });
+    } catch (error) {
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Error',
+        detail: 'Failed to delete template'
+      });
+    } finally {
+      this.loadTemplates(); // Refresh the templates list
     }
   }
 }
